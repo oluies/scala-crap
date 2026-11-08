@@ -39,7 +39,7 @@ object Options {
   )
 
   private val valued: Map[String, (Options, String) => Either[String, Options]] = Map(
-    "--root" -> ((o, v) => Right(o.copy(root = Paths.get(v).toAbsolutePath.normalize))),
+    "--root" -> ((o, v) => Try(Paths.get(v).toRealPath()).toEither.left.map(_ => s"--root: no such directory: $v").map(p => o.copy(root = p))),
     "--coverage" -> ((o, v) => Right(o.copy(coverage = o.coverage :+ Paths.get(v).toAbsolutePath))),
     "--edn" -> ((o, v) => Right(o.copy(edn = Some(Paths.get(v).toAbsolutePath)))),
     "--threshold" -> ((o, v) => Try(v.toDouble).toEither.left.map(_ => s"--threshold needs a number, not $v").map(n => o.copy(threshold = Some(n)))),

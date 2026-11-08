@@ -44,6 +44,15 @@ class MainSuite extends munit.FunSuite {
     assertEquals(gate(root, "6"), Main.ok)
   }
 
+  test("a report and a root that name the same file through a symbolic link match") {
+    val (root, file) = project()
+    report(root, file, invoked = true)
+    val link = Files.createTempDirectory("links").resolve("project")
+    Files.createSymbolicLink(link, root)
+    assertEquals(Main.run(List("--root", link.toString, "--threshold", "2")), Main.ok)
+    assert(edn(link).contains(":coverage 100.0000"), edn(link))
+  }
+
   test("a stale report fails the gate, and --allow-stale lets it through") {
     val (root, file) = project()
     val r = report(root, file, invoked = true)

@@ -2,7 +2,7 @@ package scalacrap
 
 import java.nio.file.{ Files, Path, Paths }
 import scala.jdk.CollectionConverters._
-import scala.util.Using
+import scala.util.{ Try, Using }
 
 final case class Statement(start: Int, invoked: Boolean)
 
@@ -14,8 +14,9 @@ object Coverage {
   def load(report: Path): Statements =
     (scala.xml.XML.loadFile(report.toFile) \\ "statement")
       .filter(s => (s \@ "ignored") != "true")
-      .map(s => normalize(s \@ "source") -> Statement((s \@ "start").toInt, (s \@ "invocation-count").toInt > 0))
+      .map(s => (s \@ "source") -> Statement((s \@ "start").toInt, (s \@ "invocation-count").toInt > 0))
       .groupMap(_._1)(_._2)
+      .map { case (source, statements) => canonical(source) -> statements }
 
   /** Reports for separate modules hold separate files; if one repeats, the first report wins. */
   def merge(reports: Seq[Statements]): Statements =
@@ -40,7 +41,7 @@ object Coverage {
    */
   def assign(methods: Seq[Method], statements: Statements): Map[Method, Option[Double]] =
     methods.groupBy(_.file).flatMap { case (file, inFile) =>
-      statements.get(normalize(file)) match {
+      statements.get(canonical(file)) match {
         case None           => inFile.map(_ -> None)
         case Some(observed) => percentages(inFile, observed)
       }
@@ -59,5 +60,9 @@ object Coverage {
   private def percent(statements: Seq[Statement]): Double =
     if (statements.isEmpty) 100.0 else 100.0 * statements.count(_.invoked) / statements.size
 
-  private def normalize(path: String): String = Paths.get(path).normalize.toString
+  /** Resolves symbolic links too: a report and --root can name one file differently. */
+  private def canonical(path: String): String = {
+    val p = Paths.get(path)
+    Try(p.toRealPath()).getOrElse(p.normalize).toString
+  }
 }
