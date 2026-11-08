@@ -1,0 +1,19 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: ./mill --ticker false test
+      - name: Coverage report
+        run: ./mill --ticker false scoverage.xmlReport
+      - name: Build the jar
+        run: ./mill --ticker false assembly
+      - name: CRAP gate on this project
+        run: java -jar out/assembly.dest/out.jar --threshold 10

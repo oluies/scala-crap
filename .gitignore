@@ -1,0 +1,5 @@
+out/
+.metrics/
+.bsp/
+.metals/
+.idea/
