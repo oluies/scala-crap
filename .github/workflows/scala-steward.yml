@@ -1,0 +1,20 @@
+name: Scala Steward
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  scala-steward:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'oluies/scala-crap' }}
+    env:
+      # PRs opened with the default GITHUB_TOKEN do not trigger CI, so this needs a
+      # fine-grained PAT (contents + pull requests: write) stored as SCALA_STEWARD_TOKEN.
+      SCALA_STEWARD_TOKEN: ${{ secrets.SCALA_STEWARD_TOKEN }}
+    steps:
+      - uses: scala-steward-org/scala-steward-action@v2.97.0
+        if: ${{ env.SCALA_STEWARD_TOKEN != '' }}
+        with:
+          github-token: ${{ secrets.SCALA_STEWARD_TOKEN }}

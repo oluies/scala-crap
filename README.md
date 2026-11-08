@@ -71,12 +71,13 @@ On [ADAM](https://github.com/oluies/adam) (2,208 Scala methods, scored in 4.7 s)
 ## Development
 
 ```bash
-./mill test                                      # tests
+./mill test                                      # unit tests
 ./mill scoverage.xmlReport                       # coverage from the last test run
 ./mill assembly
+test/cli_test.sh out/assembly.dest/out.jar       # the built jar and its exit codes
 java -jar out/assembly.dest/out.jar --threshold 10
 ```
 
-CI runs this gate on the project itself.
+CI runs all of these, including this gate on the project itself, and scans the history for secrets with TruffleHog. `main` is protected: changes arrive by pull request, once CI passes. Scala Steward proposes dependency updates weekly.
 
 Started from a script in ADAM, and built to agree with crapper's Scala scoring. Apache License 2.0.

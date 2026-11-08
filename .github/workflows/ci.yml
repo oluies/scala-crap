@@ -5,11 +5,11 @@ on:
   pull_request:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Test
+      - uses: actions/checkout@v7.0.1
+      - name: Unit tests
         run: ./mill --ticker false test
       - name: Coverage report
         run: ./mill --ticker false scoverage.xmlReport
@@ -17,3 +17,23 @@ jobs:
         run: ./mill --ticker false assembly
       - name: CRAP gate on this project
         run: java -jar out/assembly.dest/out.jar --threshold 10
+
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build the jar
+        run: ./mill --ticker false assembly
+      - name: Test the jar and its exit codes
+        run: test/cli_test.sh out/assembly.dest/out.jar
+
+  trufflehog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Scan for secrets
+        uses: trufflesecurity/trufflehog@v3.99.8
+        with:
+          extra_args: --results=verified,unknown
