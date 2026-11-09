@@ -19,6 +19,6 @@ object `package` extends ScoverageModule {
   )
 
   object test extends ScoverageTests with TestModule.Munit {
-    def mvnDeps = Seq(mvn"org.scalameta::munit:1.0.4")
+    def mvnDeps = Seq(mvn"org.scalameta::munit:1.3.6")
   }
 }
